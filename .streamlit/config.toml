@@ -1,0 +1,21 @@
+# Literature Gap & Hypothesis Discovery Agent — Streamlit 配置
+# 适用于本地运行与 Streamlit Community Cloud 部署。
+# 说明:
+#   - headless=true 允许无浏览器环境下以脚本方式启动(本地测试/CI 用)。
+#   - server.fileWatcherType=none 避免 Community Cloud 在无 git 变更时反复重载。
+#   - 不在此处配置任何密钥;密钥通过环境变量 OPENALEX_API_KEY 或 ~/.openalex_key 提供。
+
+[server]
+headless = true
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#1f6feb"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f4f8"
+textColor = "#1a1a2e"
+font = "sans serif"
