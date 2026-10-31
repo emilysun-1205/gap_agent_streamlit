@@ -9,7 +9,8 @@ from urllib.parse import urlsplit
 import requests
 
 ENDPOINTS = {
-    '中国内地（北京）': 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    '中国内地（北京）': 'https://cn-beijing.maas.qianwenaiapi.com/compatible-mode/v1',
+    '百炼旧版（北京）': 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     '国际站（新加坡）': 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
 }
 SECTIONS = {
@@ -56,13 +57,13 @@ def validate_analysis(value, refs):
                 raise QwenError('模型引用了未提供的文献或遗漏引用，结果已拒绝；可重新分析。')
     return {key: value[key] for key in SECTIONS}
 
-def analyze_report(out_dir, api_key, model='qwen-plus', base_url=ENDPOINTS['中国内地（北京）']):
+def analyze_report(out_dir, api_key, model='qwen3.8-flash', base_url=ENDPOINTS['中国内地（北京）']):
     if not api_key or not api_key.strip():
         raise QwenError('请先在 Streamlit Secrets 配置 DASHSCOPE_API_KEY。')
     url = urlsplit(base_url)
     if (url.scheme != 'https' or url.username or url.password or url.query or url.fragment
         or url.port not in (None, 443) or url.path.rstrip('/') != '/compatible-mode/v1'
-        or not (url.hostname in ('dashscope.aliyuncs.com', 'dashscope-intl.aliyuncs.com')
+        or not (url.hostname in ('cn-beijing.maas.qianwenaiapi.com', 'dashscope.aliyuncs.com', 'dashscope-intl.aliyuncs.com')
                 or re.fullmatch(r'[a-zA-Z0-9.-]+\.maas\.aliyuncs\.com', url.hostname or ''))):
         raise QwenError('QWEN_BASE_URL 必须为阿里云百炼官方 HTTPS 兼容接口地址。')
     if not re.fullmatch(r'qwen[a-zA-Z0-9._-]{0,80}', model):
