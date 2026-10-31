@@ -672,7 +672,7 @@ with tab_export:
         st.caption("将本次报告节选及最多30篇纳入文献的摘要发送到阿里云百炼，进行文献解读、跨文献比较、Gap复核、假设建议与批判性审查。")
         qwen_key = _qwen_setting("DASHSCOPE_API_KEY")
         qwen_region = st.selectbox("Qwen 服务地域", list(ENDPOINTS), key="qwen_region")
-        qwen_model = st.text_input("Qwen 模型", value=_qwen_setting("QWEN_MODEL", "qwen-plus"), key="qwen_model")
+        qwen_model = st.text_input("Qwen 模型", value=_qwen_setting("QWEN_MODEL", "qwen3.8-flash"), key="qwen_model")
         if qwen_key:
             st.success("Qwen 密钥已配置（仅后台使用）")
         else:
