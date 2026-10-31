@@ -126,9 +126,9 @@ Streamlit 模式产物写入系统临时目录(`app.py` 页面会显示完整路
 
 ```toml
 DASHSCOPE_API_KEY = "你的阿里云百炼密钥"
-QWEN_MODEL = "qwen-plus"
+QWEN_MODEL = "qwen3.8-flash"
 # 可选：百炼工作空间的官方兼容接口地址；地域必须与密钥一致。
-# QWEN_BASE_URL = "https://你的工作空间ID.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
+QWEN_BASE_URL = "https://cn-beijing.maas.qianwenaiapi.com/compatible-mode/v1"
 ```
 
 本地可使用同名环境变量。未指定 `QWEN_BASE_URL` 时使用界面选择的北京或新加坡接口。
