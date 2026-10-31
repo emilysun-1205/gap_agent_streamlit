@@ -58,3 +58,18 @@ def test_truncated_output_rejected(run):
     with patch('gap_agent.qwen_report.requests.post',return_value=res):
         with pytest.raises(QwenError,match='完整'):analyze_report(run,'key')
     assert not (run/'qwen_analysis.json').exists()
+
+
+def test_qianwen_flash_default_endpoint(run):
+    with patch('gap_agent.qwen_report.requests.post',return_value=response()) as post:
+        analyze_report(run,'private-test-key')
+    assert post.call_args.args[0]=='https://cn-beijing.maas.qianwenaiapi.com/compatible-mode/v1/chat/completions'
+    assert post.call_args.kwargs['json']['model']=='qwen3.8-flash'
+    assert post.call_args.kwargs['json']['response_format']=={'type':'json_object'}
+
+
+def test_lookalike_domain_rejected(run):
+    with patch('gap_agent.qwen_report.requests.post') as post:
+        with pytest.raises(QwenError):
+            analyze_report(run,'key',base_url='https://cn-beijing.maas.qianwenaiapi.com.evil.example/compatible-mode/v1')
+    post.assert_not_called()
