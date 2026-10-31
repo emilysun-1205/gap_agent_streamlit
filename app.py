@@ -39,6 +39,7 @@ import streamlit as st
 from gap_agent.pipeline import run_pipeline
 from gap_agent.config import APP_NAME, APP_VERSION
 from gap_agent.retriever import get_openalex_key
+from gap_agent.qwen_report import analyze_report, QwenError, ENDPOINTS
 
 # ---------------------------------------------------------------------------
 # 密钥桥接(仅 UI 层;科研核心零改动)
@@ -51,6 +52,13 @@ try:
         os.environ.setdefault("OPENALEX_API_KEY", str(st.secrets["OPENALEX_API_KEY"]))
 except Exception:
     pass  # 本地无 secrets 文件时正常(可用环境变量或 ~/.openalex_key)
+
+def _qwen_setting(name, default=""):
+    try:
+        return str(st.secrets.get(name, os.environ.get(name, default)))
+    except Exception:
+        return os.environ.get(name, default)
+
 
 # ---------------------------------------------------------------------------
 # 页面与全局配置
@@ -660,6 +668,37 @@ with tab_export:
                        f"{r.get('failure', '')}")
         st.caption("⚠️ Community Cloud 无持久化磁盘:请在本会话内下载;应用休眠/重启后临时文件丢失。")
 
+        st.markdown("#### Qwen 生成式 AI 报告分析")
+        st.caption("将本次报告节选及最多30篇纳入文献的摘要发送到阿里云百炼，进行文献解读、跨文献比较、Gap复核、假设建议与批判性审查。")
+        qwen_key = _qwen_setting("DASHSCOPE_API_KEY")
+        qwen_region = st.selectbox("Qwen 服务地域", list(ENDPOINTS), key="qwen_region")
+        qwen_model = st.text_input("Qwen 模型", value=_qwen_setting("QWEN_MODEL", "qwen-plus"), key="qwen_model")
+        if qwen_key:
+            st.success("Qwen 密钥已配置（仅后台使用）")
+        else:
+            st.info('请在应用 Settings → Secrets 添加 DASHSCOPE_API_KEY = "你的百炼密钥"。')
+        st.caption("调用消耗百炼额度，额度不足时停止；每次点击只请求一次，不自动重试。可在百炼控制台为模型开启仅使用免费额度。")
+        if st.button("🧠 使用 Qwen 分析本次报告", disabled=not qwen_key or r.get("status") != "ok"):
+            try:
+                with st.spinner("Qwen 正在分析文献与报告，请稍候…"):
+                    analyze_report(d, qwen_key, model=qwen_model,
+                                   base_url=_qwen_setting("QWEN_BASE_URL", ENDPOINTS[qwen_region]))
+                st.success("Qwen 分析已完成，结果尚待人工复核。")
+            except QwenError as exc:
+                st.error(str(exc))
+            except Exception:
+                st.error("Qwen 分析失败，未更新分析结果。请检查输入产物和服务配置。")
+        qwen_md_path = os.path.join(d, "qwen_analysis.md")
+        if os.path.exists(qwen_md_path):
+            qwen_result = _read_json(os.path.join(d, "qwen_analysis.json")) or {}
+            st.caption(f"已保存分析模型：{qwen_result.get('model')} · 时间：{qwen_result.get('created_at')} · Token用量：{qwen_result.get('usage', {})}")
+            qwen_md = open(qwen_md_path, encoding="utf-8").read()
+            with st.expander("查看 Qwen 分析", expanded=True):
+                st.markdown(qwen_md)
+            st.download_button("⬇️ Qwen 分析报告（Markdown）", qwen_md,
+                               file_name="qwen_analysis.md", mime="text/markdown", key="dl_qwen")
+        st.divider()
+
         outputs: Dict = r.get("outputs") or {}
         report_files = [
             ("Markdown 报告", outputs.get("report") or os.path.join(d, "report.md"),
@@ -688,7 +727,7 @@ with tab_export:
         names = ["papers.json", "evidences.json", "evidence_matrix.json", "gaps.json",
                  "hypotheses.json", "stats_summary.json", "evidence_matrix.csv",
                  "papers.csv", "search_plan.json", "source_stats.json",
-                 "report_check.json", "run_log.json"]
+                 "report_check.json", "run_log.json", "qwen_analysis.json"]
         cc1, cc2, cc3 = st.columns(3)
         for i, fn in enumerate(names):
             fp = os.path.join(d, fn)
