@@ -1,0 +1,10 @@
+# Literature Gap & Hypothesis Discovery Agent — v0.5.1 运行依赖
+# 环境:Python 3.11.14
+# 说明:streamlit 为 Streamlit 单体应用入口(app.py)所需;其余为科研核心依赖。
+requests==2.32.5
+pytest==8.4.2
+matplotlib==3.10.3
+weasyprint==65.1
+python-docx==1.1.2
+markdown==3.7
+streamlit==1.66.1

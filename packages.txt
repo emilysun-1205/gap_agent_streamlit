@@ -1,0 +1,13 @@
+# Streamlit Community Cloud 系统级依赖(apt),用于 WeasyPrint 渲染 PDF 报告。
+# 与 Dockerfile 中 apt 依赖保持一致;Community Cloud 会据此安装系统包。
+# 若缺失,report.pdf 生成会失败(WeasyPrint 依赖 Pango/Cairo/HarfBuzz)。
+libpango-1.0-0
+libpangoft2-1.0-0
+libpangocairo-1.0-0
+libharfbuzz0b
+libharfbuzz-icu0
+libcairo2
+libcairo-gobject2
+libgdk-pixbuf-2.0-0
+fontconfig
+fonts-noto-cjk
