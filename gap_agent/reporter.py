@@ -459,8 +459,36 @@ class ReportGenerator:
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
-        plt.rcParams["font.sans-serif"] = ["Noto Sans CJK SC", "WenQuanYi Micro Hei",
-                                           "SimHei", "Arial Unicode MS"]
+        # ---- 中文字体保障:注册系统 CJK 字体并选择可用字体 ----
+        # 背景:Noto CJK 以 .ttc 字体集合提供,matplotlib 默认只读取第一个 face(JP),
+        # 导致配置 "Noto Sans CJK SC" 时找不到,回退到 DejaVu Sans 渲染方框。
+        # 注册 .ttc 的默认 face,再动态挑选系统实际可用的 CJK 字体。
+        try:
+            from matplotlib import font_manager
+            # 1) 注册 Noto CJK 字体集合的默认 face
+            _noto_sc_candidates = [
+                "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+                "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+                "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc",
+            ]
+            for _p in _noto_sc_candidates:
+                if os.path.exists(_p):
+                    try:
+                        font_manager.fontManager.addfont(_p)
+                    except Exception:
+                        pass
+            # 2) 动态挑选系统实际可用的 CJK 字体(按优先级)
+            _avail = {f.name for f in font_manager.fontManager.ttflist}
+            _pref = ["Noto Sans CJK SC", "Noto Sans CJK JP", "WenQuanYi Micro Hei",
+                     "WenQuanYi Zen Hei", "SimHei", "Arial Unicode MS"]
+            _chosen = [f for f in _pref if f in _avail]
+            if not _chosen:
+                _chosen = ["sans-serif"]
+            plt.rcParams["font.sans-serif"] = _chosen
+        except Exception:
+            # 兜底:保持原配置
+            plt.rcParams["font.sans-serif"] = ["Noto Sans CJK SC", "WenQuanYi Micro Hei",
+                                               "SimHei", "Arial Unicode MS"]
         plt.rcParams["axes.unicode_minus"] = False
         fig_dir = os.path.join(out_dir, "figures")
         os.makedirs(fig_dir, exist_ok=True)
